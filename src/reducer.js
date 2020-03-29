@@ -1,39 +1,13 @@
 import * as actions from './actions';
 import BFS from './BFS';
 import { initialState } from './initialState';
-
-// const initialState = {
-//   mapHeight: 0,
-//   mapWidth: 0,
-//   //1 dimensional array representing the map
-//   map: [],
-
-//   player: {
-//     //index in map array indicating where the player currently is
-//     position: 0,
-//     //player's current health
-//     hp: 100,
-//     //how much the player will damage enemies for.
-//     damage: 1,
-//   },
-//   enemies: [
-//     /*
-//     {
-//       hp: 5,
-//       damage: 1,
-//       position: index,
-//     }
-//     */
-//   ],
-//   log: [],
-// };
-
 const reducer = (state = initialState, action) => {
   switch (action.type) {
     case actions.STEP: {
       //shallow copies
       const player = { ...state.player }
       const map = [...state.map]
+      const enemies = [...state.enemies]
 
       //match key pressed to player's displacement
       const keyMap = { 37: -1, 38: -20, 39: 1, 40: 20 }
@@ -41,9 +15,20 @@ const reducer = (state = initialState, action) => {
 
       if (map[player.position+shift]==='.') {
              player.position += shift;
-             map.splice(player.position,1,'@')
-             map.splice(player.position-shift,1,'.')
+             map[player.position] = '@';
+             map[player.position-shift] = '.'
       }
+
+      if (enemies.length) {
+      enemies.forEach(enemy => {
+        //calculate enemy's next position
+        let oldPosition = enemy.position
+        enemy.position = BFS(oldPosition, player.position, map, 20, 10)[0]
+        //update position on map
+        map[oldPosition] = '.';
+        map[enemy.position] = 'e';
+      })
+    }
       return { ...state, player, map }
     }
 

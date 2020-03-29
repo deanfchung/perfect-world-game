@@ -5,7 +5,7 @@ export const ADD_ENEMY = 'ADD_ENEMY';
 export const step = (keyCode) => {
   return {
     type: STEP,
-    keyCode,
+    payload: keyCode,
   }
 }
 

@@ -1,11 +1,10 @@
 import React from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector} from 'react-redux';
 
 //This function is responsible for rendering the level and all
 //the entities in it.
 export default function Level(props) {
   const map = useSelector(state => state.map)
-  console.log('state.map', map);
   const grid = [];
   for (let i = 0; i < map.length; i += 20) {
     const tableRow = [];
@@ -20,7 +19,7 @@ export default function Level(props) {
       else if (map[i+j]==='e') {
         className = 'enemy'
       }
-      tableRow.push(<td className = {className}key = {i+j} index = {i+j}>{map[i + j]}</td>)
+      tableRow.push(<td className = {className} key = {i+j} index = {i+j}> {map[i + j]}</td>)
     }
     grid.push(<tr key = {i/20}>{tableRow}</tr>);
   }

@@ -8,29 +8,60 @@ const reducer = (state = initialState, action) => {
       const player = { ...state.player }
       const map = [...state.map]
       const enemies = [...state.enemies]
+      const log = [...state.log]
 
       //match key pressed to player's displacement
       const keyMap = { 37: -1, 38: -20, 39: 1, 40: 20 }
-      const shift = keyMap[action.payload]
+      const compassMap = {37: 'west', 38: 'north', 39: 'east', 40: 'south'}
+      const shift = keyMap[action.keyCode]
 
-      if (map[player.position+shift]==='.') {
-             player.position += shift;
-             map[player.position] = '@';
-             map[player.position-shift] = '.'
+      //player moves to empty space
+      if (map[player.position + shift] === '.') {
+        player.position += shift;
+        map[player.position] = '@';
+        map[player.position - shift] = '.'
+        log.push('player moved ' + `${compassMap[action.keyCode]}`)
       }
 
-      if (enemies.length) {
-      enemies.forEach(enemy => {
-        //calculate enemy's next position
-        let oldPosition = enemy.position
-        enemy.position = BFS(oldPosition, player.position, map, 20, 10)[0]
-        //update position on map
-        map[oldPosition] = '.';
-        map[enemy.position] = 'e';
-      })
-    }
-      return { ...state, player, map }
-    }
+      //player attacks enemy
+      if (map[player.position + shift] === 'e') {
+        let engagedEnemy;
+        enemies.forEach((enemy, i) => {
+          if (enemy.position === player.position + shift) {
+            engagedEnemy = i;
+          }
+        })
+        let enemy = enemies[engagedEnemy];
+        enemy.hp -= player.damage;
+        log.push('player attacked enemy')
+        if (enemy.hp === 0) {
+          log.push('enemy died');
+          map[enemy.position] = '.'
+            engagedEnemy === 0 ? enemies.unshift() : enemies.pop();
+        }
+      }
+
+      if (enemies[0].hp > 0) {
+        enemies.forEach(enemy => {
+          //calculate enemy's next position
+          let oldPosition = enemy.position
+          let newPosition = BFS(oldPosition, player.position, map, 20, 10)[0]
+
+          //enemy moves toward player
+          if (map[newPosition] !== '@') {
+            enemy.position = newPosition;
+            map[oldPosition] = '.';
+            map[enemy.position] = 'e';
+          }
+          //enemy attacks player
+          if (map[newPosition]==='@') {
+            player.hp -= enemy.damage;
+            log.push('enemy attacked player')
+          }
+        })
+      }
+        return { ...state, player, map, enemies, log }
+      }
 
     case actions.SET_MAP_SIZE: {
       let map = [];

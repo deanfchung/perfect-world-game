@@ -1,6 +1,5 @@
 import * as actions from './actions';
-import BFS from './BFS';
-import { keyMap, compassMap, initialState } from './utils';
+import { keyMap, compassMap, initialState, BFS } from './utils';
 
 const reducer = (state = initialState, action) => {
   switch (action.type) {
@@ -41,7 +40,11 @@ const reducer = (state = initialState, action) => {
             enemies = enemies.filter(el => el !== enemy)
           }
           else {
+            newPlayerPosition = enemy.position;
+            map[newPlayerPosition] = '@';
+            map[player.position] = '.'
             enemies = [];
+            log.push('player moved ' + `${compassMap[action.keyCode]}`)
           }
         }
       }

@@ -5,8 +5,8 @@ import { Provider } from 'react-redux';
 import { createStore } from 'redux';
 import * as actions from './actions';
 import reducer from './reducer';
-import Level from './Level';
-import Logger from './Logger';
+import Level from './components/Level';
+import Logger from './components/Logger';
 import { initialState } from './utils';
 
 const store = createStore(

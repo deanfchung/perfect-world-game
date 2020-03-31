@@ -54,7 +54,7 @@ const reducer = (state = initialState, action) => {
           //if player was previously adjacent, enemy stays in place for turn but deals damage
           if (wasAdjacent(oldPosition, prevPosition)) {
             player.hp -= enemy.damage;
-            log.push(`enemy ${i} attacked player`)
+            log.push('enemy attacked player')
           }
 
           //if new position is unoccupied and was not previously adjacent, move toward player

@@ -4,7 +4,7 @@ export const compassMap = { 37: 'west', 38: 'north', 39: 'east', 40: 'south' }
 export const movePlayer = (map, newPlayerPosition, position, log, compassMap, keyCode) => {
   map[newPlayerPosition] = '@';
   map[position] = '.';
-  log.push('player moved ' + `${compassMap[keyCode]}`)
+  log.push(`player moved ${compassMap[keyCode]}`)
 }
 
 export const wasAdjacent = (oldPosition, prevPosition) => {

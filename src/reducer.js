@@ -1,26 +1,22 @@
 import * as actions from './actions';
-import { keyMap, compassMap, initialState, BFS } from './utils';
+import { keyMap, compassMap, initialState, BFS, movePlayer, wasAdjacent } from './utils';
 
 const reducer = (state = initialState, action) => {
   switch (action.type) {
     case actions.STEP: {
-      //shallow copies
       const player = { ...state.player }
       const map = [...state.map]
       let enemies = [...state.enemies]
       const log = [...state.log]
-      const playerHistory = [...state.playerHistory]
-      const prevPosition = playerHistory[playerHistory.length - 1]
       let newPlayerPosition = player.position;
+
       //match key pressed to player's displacement
       const shift = keyMap[action.keyCode]
 
       //player moves to empty space
       if (map[player.position + shift] === '.') {
         newPlayerPosition = player.position + shift
-        map[newPlayerPosition] = '@';
-        map[player.position] = '.';
-        log.push('player moved ' + `${compassMap[action.keyCode]}`)
+        movePlayer(map, newPlayerPosition, player.position, log, compassMap, action.keyCode)
       }
 
       //player attacks enemy
@@ -41,13 +37,13 @@ const reducer = (state = initialState, action) => {
           }
           else {
             newPlayerPosition = enemy.position;
-            map[newPlayerPosition] = '@';
-            map[player.position] = '.'
+            movePlayer(map, newPlayerPosition, player.position, log, compassMap, action.keyCode)
             enemies = [];
-            log.push('player moved ' + `${compassMap[action.keyCode]}`)
           }
         }
       }
+      const playerHistory = [...state.playerHistory]
+      const prevPosition = playerHistory[playerHistory.length - 1]
       //if any enemies still exist, move and/or attack player
       if (enemies.length) {
         enemies.forEach((enemy, i) => {
@@ -55,20 +51,14 @@ const reducer = (state = initialState, action) => {
           let oldPosition = enemy.position
           let newPosition = BFS(oldPosition, newPlayerPosition, map, 20, 10)[0]
 
-          const wasAdjacent = () => {
-            if (oldPosition - 1 === prevPosition || oldPosition + 1 === prevPosition || oldPosition + 20 === prevPosition || oldPosition - 20 === prevPosition) {
-              return true;
-            }
-            return false;
-          }
           //if player was previously adjacent, enemy stays in place for turn but deals damage
-          if (wasAdjacent()) {
+          if (wasAdjacent(oldPosition, prevPosition)) {
             player.hp -= enemy.damage;
             log.push(`enemy ${i} attacked player`)
           }
 
-          //if new position is unoccupied and was not previously adjacent, move forward
-          if (map[newPosition] === '.' && !wasAdjacent()) {
+          //if new position is unoccupied and was not previously adjacent, move toward player
+          if (map[newPosition] === '.' && !wasAdjacent(oldPosition, prevPosition)) {
             enemy.position = newPosition;
             map[oldPosition] = '.';
             map[enemy.position] = 'e';

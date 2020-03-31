@@ -1,7 +1,6 @@
 import * as actions from './actions';
 import BFS from './BFS';
-import { initialState } from './initialState';
-import { movePlayer, keyMap, compassMap, attackEnemy } from './utils';
+import { keyMap, compassMap, initialState } from './utils';
 
 const reducer = (state = initialState, action) => {
   switch (action.type) {
@@ -12,12 +11,8 @@ const reducer = (state = initialState, action) => {
       let enemies = [...state.enemies]
       const log = [...state.log]
       const playerHistory = [...state.playerHistory]
-      const prevPosition = playerHistory[playerHistory.length-1]
-      let enemyHistory = []
-      let subEnemyHistory = [];
+      const prevPosition = playerHistory[playerHistory.length - 1]
       let newPlayerPosition = player.position;
-      console.log('enemyHistory', state.enemyHistory)
-
       //match key pressed to player's displacement
       const shift = keyMap[action.keyCode]
 
@@ -30,45 +25,57 @@ const reducer = (state = initialState, action) => {
       }
 
       //player attacks enemy
-
-      //if any enemies still exist, enemie(s) move and/or attack player
+      if (map[player.position + shift] === 'e') {
+        let engagedEnemy;
+        enemies.forEach((enemy, i) => {
+          if (enemy.position === player.position + shift) {
+            engagedEnemy = i;
+          }
+        })
+        let enemy = enemies[engagedEnemy];
+        enemy.hp -= player.damage;
+        log.push('player attacked enemy')
+        if (enemy.hp === 0) {
+          map[enemy.position] = '.'
+          if (enemies.length > 1) {
+            enemies = enemies.filter(el => el !== enemy)
+          }
+          else {
+            enemies = [];
+          }
+        }
+      }
+      //if any enemies still exist, move and/or attack player
       if (enemies.length) {
-        enemies.forEach((enemy,i) => {
-          console.log('calculations iteration: ', i);
+        enemies.forEach((enemy, i) => {
           //calculate enemy's next position
           let oldPosition = enemy.position
-          let calculation = BFS(oldPosition, newPlayerPosition, map, 20, 10)
-          calculation.length > 2 ? subEnemyHistory.push({i: calculation.slice(0,2)}) : subEnemyHistory.push({i: calculation})
           let newPosition = BFS(oldPosition, newPlayerPosition, map, 20, 10)[0]
- 
-          //console.log('newPosition', newPosition)
+
           const wasAdjacent = () => {
-            if (oldPosition-1===prevPosition || oldPosition+1===prevPosition || oldPosition + 20 === prevPosition || oldPosition-20===prevPosition) {
+            if (oldPosition - 1 === prevPosition || oldPosition + 1 === prevPosition || oldPosition + 20 === prevPosition || oldPosition - 20 === prevPosition) {
               return true;
             }
             return false;
           }
           //if player was previously adjacent, enemy stays in place for turn but deals damage
           if (wasAdjacent()) {
-            console.log('was previously adjacent');
-            player.hp-=enemy.damage;
+            player.hp -= enemy.damage;
             log.push(`enemy ${i} attacked player`)
           }
 
           //if new position is unoccupied and was not previously adjacent, move forward
-           if (map[newPosition] === '.' && !wasAdjacent()) {
+          if (map[newPosition] === '.' && !wasAdjacent()) {
             enemy.position = newPosition;
             map[oldPosition] = '.';
             map[enemy.position] = 'e';
           }
-
         })
       }
-        enemyHistory.push(subEnemyHistory);
-        playerHistory.push(newPlayerPosition);
-        player.position = newPlayerPosition;
-        return { ...state, player, map, enemies, log, playerHistory, enemyHistory }
-      }
+      playerHistory.push(newPlayerPosition);
+      player.position = newPlayerPosition;
+      return { ...state, player, map, enemies, log, playerHistory }
+    }
 
     case actions.SET_MAP_SIZE: {
       let map = [];

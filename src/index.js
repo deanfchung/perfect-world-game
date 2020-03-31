@@ -7,7 +7,7 @@ import * as actions from './actions';
 import reducer from './reducer';
 import Level from './Level';
 import Logger from './Logger';
-import { initialState } from './initialState';
+import { initialState } from './utils';
 
 const store = createStore(
   reducer,

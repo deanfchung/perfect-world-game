@@ -1,16 +1,20 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 
 export default function Logger() {
-  const log = useSelector(state => state.log)
+  let log = useSelector(state => state.log)
+  let turnHistory = [...log]
 
   useEffect(() => {
     const drawer = document.querySelector('.drawer');
     drawer.scrollTop = drawer.scrollHeight;
   })
   
-  const turnHistory = log.map((el,i) => {
-    return <li key = {i}>{el}</li>
+  if (turnHistory.length > 20) {
+      turnHistory = turnHistory.slice(Math.max(turnHistory.length - 20, 0))
+    }
+  turnHistory = turnHistory.map((listItem, i) => {
+    return <li key = {i}>{listItem}</li>
   })
 
   return (
@@ -19,4 +23,4 @@ export default function Logger() {
       <ul>{turnHistory}</ul>
     </div>
   );
-}
+  }

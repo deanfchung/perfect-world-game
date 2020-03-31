@@ -1,11 +1,11 @@
 import React, { useRef, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 
-export default function Logger(props) {
+export default function Logger() {
   const log = useSelector(state => state.log)
-  
+
   useEffect(() => {
-    const drawer = document.querySelector('#logger');
+    const drawer = document.querySelector('.drawer');
     drawer.scrollTop = drawer.scrollHeight;
   })
   

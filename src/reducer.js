@@ -1,66 +1,73 @@
 import * as actions from './actions';
 import BFS from './BFS';
 import { initialState } from './initialState';
+import { movePlayer, keyMap, compassMap, attackEnemy } from './utils';
+
 const reducer = (state = initialState, action) => {
   switch (action.type) {
     case actions.STEP: {
       //shallow copies
       const player = { ...state.player }
       const map = [...state.map]
-      const enemies = [...state.enemies]
+      let enemies = [...state.enemies]
       const log = [...state.log]
+      const playerHistory = [...state.playerHistory]
+      const prevPosition = playerHistory[playerHistory.length-1]
+      let enemyHistory = []
+      let subEnemyHistory = [];
+      let newPlayerPosition = player.position;
+      console.log('enemyHistory', state.enemyHistory)
 
       //match key pressed to player's displacement
-      const keyMap = { 37: -1, 38: -20, 39: 1, 40: 20 }
-      const compassMap = {37: 'west', 38: 'north', 39: 'east', 40: 'south'}
       const shift = keyMap[action.keyCode]
 
       //player moves to empty space
       if (map[player.position + shift] === '.') {
-        player.position += shift;
-        map[player.position] = '@';
-        map[player.position - shift] = '.'
+        newPlayerPosition = player.position + shift
+        map[newPlayerPosition] = '@';
+        map[player.position] = '.';
         log.push('player moved ' + `${compassMap[action.keyCode]}`)
       }
 
       //player attacks enemy
-      if (map[player.position + shift] === 'e') {
-        let engagedEnemy;
-        enemies.forEach((enemy, i) => {
-          if (enemy.position === player.position + shift) {
-            engagedEnemy = i;
-          }
-        })
-        let enemy = enemies[engagedEnemy];
-        enemy.hp -= player.damage;
-        log.push('player attacked enemy')
-        if (enemy.hp === 0) {
-          log.push('enemy died');
-          map[enemy.position] = '.'
-            engagedEnemy === 0 ? enemies.unshift() : enemies.pop();
-        }
-      }
 
-      if (enemies[0].hp > 0) {
-        enemies.forEach(enemy => {
+      //if any enemies still exist, enemie(s) move and/or attack player
+      if (enemies.length) {
+        enemies.forEach((enemy,i) => {
+          console.log('calculations iteration: ', i);
           //calculate enemy's next position
           let oldPosition = enemy.position
-          let newPosition = BFS(oldPosition, player.position, map, 20, 10)[0]
+          let calculation = BFS(oldPosition, newPlayerPosition, map, 20, 10)
+          calculation.length > 2 ? subEnemyHistory.push({i: calculation.slice(0,2)}) : subEnemyHistory.push({i: calculation})
+          let newPosition = BFS(oldPosition, newPlayerPosition, map, 20, 10)[0]
+ 
+          //console.log('newPosition', newPosition)
+          const wasAdjacent = () => {
+            if (oldPosition-1===prevPosition || oldPosition+1===prevPosition || oldPosition + 20 === prevPosition || oldPosition-20===prevPosition) {
+              return true;
+            }
+            return false;
+          }
+          //if player was previously adjacent, enemy stays in place for turn but deals damage
+          if (wasAdjacent()) {
+            console.log('was previously adjacent');
+            player.hp-=enemy.damage;
+            log.push(`enemy ${i} attacked player`)
+          }
 
-          //enemy moves toward player
-          if (map[newPosition] !== '@') {
+          //if new position is unoccupied and was not previously adjacent, move forward
+           if (map[newPosition] === '.' && !wasAdjacent()) {
             enemy.position = newPosition;
             map[oldPosition] = '.';
             map[enemy.position] = 'e';
           }
-          //enemy attacks player
-          if (map[newPosition]==='@') {
-            player.hp -= enemy.damage;
-            log.push('enemy attacked player')
-          }
+
         })
       }
-        return { ...state, player, map, enemies, log }
+        enemyHistory.push(subEnemyHistory);
+        playerHistory.push(newPlayerPosition);
+        player.position = newPlayerPosition;
+        return { ...state, player, map, enemies, log, playerHistory, enemyHistory }
       }
 
     case actions.SET_MAP_SIZE: {

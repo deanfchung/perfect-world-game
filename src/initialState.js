@@ -23,4 +23,6 @@ export const initialState = {
     */
   ],
   log: [],
+  playerHistory:[21],
+  enemyHistory: []
 };

@@ -1,33 +1,40 @@
 import React from 'react';
-import { useSelector} from 'react-redux';
+import { useSelector } from 'react-redux';
 
 //This function is responsible for rendering the level and all
 //the entities in it.
-export default function Level(props) {
+export default function Level() {
   const map = useSelector(state => state.map)
-  const grid = [];
+  const symbolMap = { '@': 'player', '#': 'wall', 'e': 'enemy','.': 'empty' }
+  const gameBoard = [];
+
   for (let i = 0; i < map.length; i += 20) {
     const tableRow = [];
+
     for (let j = 0; j < 20; j++) {
-      let className;
-      if (map[i+j] === '@') {
-        className = 'player'
-      }
-      else if (map[i+j]==='#') {
-        className = 'wall'
-      }
-      else if (map[i+j]==='e') {
-        className = 'enemy'
-      }
-      tableRow.push(<td className = {className} key = {i+j} index = {i+j}> {map[i + j]}</td>)
+      let className = symbolMap[map[i + j]];
+      tableRow.push(<td 
+        className={className}
+        key={i + j}
+        index={i + j}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '11px',
+          height: '17px'
+        }}>
+          {map[i + j]}
+        </div>
+      </td>)
     }
-    grid.push(<tr key = {i/20}>{tableRow}</tr>);
+    gameBoard.push(<tr key={i / 20}>{tableRow}</tr>);
   }
 
   return (
     <table className="table">
       <tbody>
-        {grid}
+        {gameBoard}
       </tbody>
     </table>
 

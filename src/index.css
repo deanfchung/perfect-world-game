@@ -65,8 +65,12 @@ td {
 
 .enemy {
   color: red;
+  padding-bottom: 5px;
 }
 
 .list {
   overflow: scroll;
+}
+.empty {
+  padding-bottom: 10px;
 }
